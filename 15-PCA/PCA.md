@@ -1,5 +1,7 @@
 ## PCA推导
 
+### [Robust principal component analysis](http://www.researchgate.net/publication/3878667_Robust_principal_component_analysis?ev=auth_pub)
+
 ​    以下面这幅图开始我们的推导：
 
 <img src="http://img.blog.csdn.net/20141230141749941?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvemhvbmdrZWppbmd3YW5n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" width="50%"/>
