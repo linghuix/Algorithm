@@ -1,116 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-//-------------------------------------------------------------------------------
-#define StackSize 50 
+#include "Stack.h"
 
-//类型定义 
-
-typedef char ElementType;
-
-typedef struct stack* Stack;
-struct stack{
-    
-    ElementType data[StackSize];    //数组data用于存放表结点，结点中的元素的类型设定为int 
-    int top;                        //满栈顶，指向数据 
-};
-
-int Contain(ElementType d,Stack L){
-    int i;
-    
-    for(i=0;i<=L->top;i++){
-        if(d==L->data[i])
-            return 1;
-    }
-    return 0;
-}
-
-//初始化将表的长度设置为0
-Stack CreateStack(){
-    
-    Stack s = (Stack)malloc(sizeof(struct stack));
-    s->top = -1; 
-    return s;
-} 
-
-//清空堆栈
-void Clear(Stack L){
-    L->top = -1; 
-    
-}
-
-//清空堆栈
-void Delete(Stack L){
-    if (L != NULL) 
-        free(L); 
-    L = NULL;
-}
-
-//判断栈是否空 
-int IsEmpty (Stack L){
-    
-    return L->top == -1;
-}
-
-
-//判断栈是否满,  true为满
-int IsFull(Stack L ){
-    
-    return L->top == StackSize - 1;
-} 
-
-
-//进栈 
-void Push(ElementType x, Stack L){
-    
-    if(IsFull(L)) printf("Stack full\n");
-    L->data[++ L->top] = x; 
-} 
-
-
-//退栈
-ElementType Pop(Stack L){
-    
-    if(IsEmpty(L)) printf("Stack empty\n");
-    return L->data[ L->top--];
-}
-
-
-//取栈顶元素 
-ElementType StackTop(Stack L){
-    
-    if(IsEmpty(L)) printf("Stack empty\n");
-    return L->data[L->top];
-}
-
-Stack Copy(Stack L){
-    int i;
-    Stack n = CreateStack();
-    
-    for(i=0;i<=L->top;i++){
-        n->data[i] = L->data[i];
-    }
-    n->top = L->top;
-    
-    return n;
-}
-
-void print(Stack L,int flag){
-    
-    int i;
-    //flag = 1
-    if(flag){
-        for(i=0;i<=L->top;i++){
-            printf("%-5d",L->data[i]);
-        }
-        //printf("\n");
-    }
-    else{
-        for(i=L->top;i>=0;i--){
-            printf("%-5d",L->data[i]);
-        }
-    }
-    
-}
 
 //-----------------------------
 #define Vertex 6
@@ -143,10 +34,13 @@ void PrintRoute(int (*p)[50],int from, int to,Stack stack){
     //printf("from = %d\n",from);
     
     for(i=0;p[to][i]!=-1;i++){
-        if(!Contain(i,stack)){
+        //printf("p[to][i] = %-8d",p[to][i]);
+        //print(stack,1);
+        //printf("\n");
+        if(!Contain(p[to][i],stack)){
             
             if(p[to][i] == from){
-                Push(from,stack);
+                printf("%-5d",from);
                 print(stack,0);
                 printf("\n");
             }
@@ -235,7 +129,6 @@ int main(){
     然后，根据图更新其余距离
     
     随后重复从数组中找到最小距离(除了上述确定最短距离的点)，必为到该点的最短距离
-
     */
 
     /*
@@ -268,10 +161,8 @@ int main(){
     int min,v;
     v = from;
     
-    
     //到达每个顶点的路径数目
     int flag[Vertex]={0};
-    // int flag = 0;
 
     for(j =1; j < Vertex; j++){
         
@@ -280,20 +171,18 @@ int main(){
             if(complete[i] != 1){
                 if(min >  G->distance[from][i]){
                     min = G->distance[from][i];
-                    // pre[v][flag] = i;
                     v = i;
                 }
-                // printf("i=%d\n",i);
             }
         }
-        // printf("v=%d\n",v);
+        printf("当前最短路劲确定的顶点　v=%d\n",v);
         complete[v] = 1;
         
         for(i=0;i<Vertex;i++){
             // printf("f=%d\n",flag);
             // if(G->distance[v][i] != INF && complete[i] != 1) 确定最短路径的也有可能还有相同的最短路径
             if(G->distance[v][i] != INF){
-                printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
+                //printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
                 //由于算法的特性，每次路径更新，v必定是i顶点的前一个顶点，所以记录下来
                 if(G->distance[from][i] > G->distance[from][v] + G->distance[v][i]){
                     G->distance[from][i] = G->distance[from][v] + G->distance[v][i];
@@ -305,6 +194,8 @@ int main(){
                 //相同长度的路径，记录前一个顶点到另一个维度
                 else if(G->distance[from][i] == G->distance[from][v] + G->distance[v][i] && v!=from && v!=i){
                     pre[i][++flag[i]] = v;
+                    printf("pre\n");
+                    Print(pre,Vertex,6);
                 }
             }
         }
@@ -323,26 +214,100 @@ int main(){
 // int route[]
 // for(i=0;i<Vertex;i++)
     // route[i] = pre[i][0];
-        printf("达到每个顶点的前顶点可选择数目：");
-        for(i=0;i<Vertex;i++)
-            printf("%-5d",flag[i]+1);
-        printf("\n");
-        
+    printf("达到每个顶点的前顶点可选择数目：");
+    for(i=0;i<Vertex;i++)
+        printf("%-5d",flag[i]+1);
+    printf("\n\n");
+
     int to;
     for(to=0;to<Vertex;to++){
         j = 0;
-        printf("from %d to %d = %d\n", from,to,G->distance[from][to]);
+        printf("路径：from %d to %d = %d\n", from,to,G->distance[from][to]);
         
-        printf("路径：");
-        printf("%d\n", PS(to,pre,from));
         
-        while(pre[to][++j] != -1){
-            pre[to][0] = pre[to][j];
-            printf("路径：");
-            printf("%d\n", PS(to,pre,from));
-            j++;
-        }
+        Stack route;
+        route = CreateStack();
+        PrintRoute(pre,from, to,route);
+        printf("\n\n");
+
     }
+    printf("%s,%d,gooooooooooooooood!\n",__FILE__,__LINE__);
 }
 
 
+/**
+* @para　from　图中的起点
+* @para G　数据结构　图
+*/
+void Dijikstra(struct graph *G,int from){
+    
+    int complete[Vertex] = {0};
+    int i,j;
+    int pre[Vertex][50];
+    {
+        //已经找到最短距离的点
+         complete[from] = 1;
+        
+        //记录最短路径中，某顶点的前一个顶点，可以存储多种路径。
+        for (i=0;i<Vertex;i++){
+            for(j=0;j<50;j++){
+                pre[i][j] = -1;
+            }
+        }
+
+        //一开始，每个顶点的上一个顶点都被设为是起点。也就是没有转车直达每个顶点的距离。
+        for(j=0;j<Vertex;j++){
+            pre[j][0] = from;
+        }
+
+        G->distance[from][from] = 0;
+    }
+
+
+    //寻找当前离起点最小的顶点
+    int min,v;
+    v = from;
+    
+    //到达每个顶点的路径数目
+    int flag[Vertex]={0};
+
+    for(j =1; j < Vertex; j++){
+        
+        min=INF;
+        for(i=0;i<Vertex;i++){
+            if(complete[i] != 1){
+                if(min >  G->distance[from][i]){
+                    min = G->distance[from][i];
+                    v = i;
+                }
+            }
+        }
+        printf("当前最短路劲确定的顶点　v=%d\n",v);
+        complete[v] = 1;
+        
+        for(i=0;i<Vertex;i++){
+            // printf("f=%d\n",flag);
+            // if(G->distance[v][i] != INF && complete[i] != 1) 确定最短路径的也有可能还有相同的最短路径
+            if(G->distance[v][i] != INF){
+                //printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
+                //由于算法的特性，每次路径更新，v必定是i顶点的前一个顶点，所以记录下来
+                if(G->distance[from][i] > G->distance[from][v] + G->distance[v][i]){
+                    G->distance[from][i] = G->distance[from][v] + G->distance[v][i];
+                    pre[i][flag[i]] = v;
+                    flag[i] = 0;
+                    while(pre[i][++flag[i]] != -1){pre[i][++flag[i]] = -1;}
+                    flag[i] = 0;
+                }
+                //相同长度的路径，记录前一个顶点到另一个维度
+                else if(G->distance[from][i] == G->distance[from][v] + G->distance[v][i] && v!=from && v!=i){
+                    pre[i][++flag[i]] = v;
+                    printf("pre\n");
+                    Print(pre,Vertex,6);
+                }
+            }
+        }
+        
+        // for(i=0;i<5;i++)
+            // printf("%-5d",complete[i]);
+    }
+}

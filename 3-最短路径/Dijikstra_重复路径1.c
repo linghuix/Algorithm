@@ -271,10 +271,8 @@ int main(){
     int min,v;
     v = from;
     
-    
     //到达每个顶点的路径数目
     int flag[Vertex]={0};
-    // int flag = 0;
 
     for(j =1; j < Vertex; j++){
         
@@ -283,20 +281,18 @@ int main(){
             if(complete[i] != 1){
                 if(min >  G->distance[from][i]){
                     min = G->distance[from][i];
-                    // pre[v][flag] = i;
                     v = i;
                 }
-                // printf("i=%d\n",i);
             }
         }
-        // printf("v=%d\n",v);
+        printf("当前最短路劲确定的顶点　v=%d\n",v);
         complete[v] = 1;
         
         for(i=0;i<Vertex;i++){
             // printf("f=%d\n",flag);
             // if(G->distance[v][i] != INF && complete[i] != 1) 确定最短路径的也有可能还有相同的最短路径
             if(G->distance[v][i] != INF){
-                printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
+                //printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
                 //由于算法的特性，每次路径更新，v必定是i顶点的前一个顶点，所以记录下来
                 if(G->distance[from][i] > G->distance[from][v] + G->distance[v][i]){
                     G->distance[from][i] = G->distance[from][v] + G->distance[v][i];
@@ -308,6 +304,8 @@ int main(){
                 //相同长度的路径，记录前一个顶点到另一个维度
                 else if(G->distance[from][i] == G->distance[from][v] + G->distance[v][i] && v!=from && v!=i){
                     pre[i][++flag[i]] = v;
+                    printf("pre\n");
+                    Print(pre,Vertex,6);
                 }
             }
         }
@@ -346,3 +344,79 @@ int main(){
 }
 
 
+/**
+* @para　from　图中的起点
+* @para G　数据结构　图
+*/
+void Dijikstra(struct graph *G,int from){
+    
+    int complete[Vertex] = {0};
+    int i,j;
+    int pre[Vertex][50];
+    {
+        //已经找到最短距离的点
+         complete[from] = 1;
+        
+        //记录最短路径中，某顶点的前一个顶点，可以存储多种路径。
+        for (i=0;i<Vertex;i++){
+            for(j=0;j<50;j++){
+                pre[i][j] = -1;
+            }
+        }
+        
+        //一开始，每个顶点的上一个顶点都被设为是起点。也就是没有转车直达每个顶点的距离。
+        for(j=0;j<Vertex;j++){
+            pre[j][0] = from;
+        }
+
+        G->distance[from][from] = 0;
+    }
+
+
+    //寻找当前离起点最小的顶点
+    int min,v;
+    v = from;
+    
+    //到达每个顶点的路径数目
+    int flag[Vertex]={0};
+
+    for(j =1; j < Vertex; j++){
+        
+        min=INF;
+        for(i=0;i<Vertex;i++){
+            if(complete[i] != 1){
+                if(min >  G->distance[from][i]){
+                    min = G->distance[from][i];
+                    v = i;
+                }
+            }
+        }
+        printf("当前最短路劲确定的顶点　v=%d\n",v);
+        complete[v] = 1;
+        
+        for(i=0;i<Vertex;i++){
+            // printf("f=%d\n",flag);
+            // if(G->distance[v][i] != INF && complete[i] != 1) 确定最短路径的也有可能还有相同的最短路径
+            if(G->distance[v][i] != INF){
+                //printf("%d  %d  %d  %d\n",G->distance[from][i],G->distance[from][v],G->distance[v][i],i);
+                //由于算法的特性，每次路径更新，v必定是i顶点的前一个顶点，所以记录下来
+                if(G->distance[from][i] > G->distance[from][v] + G->distance[v][i]){
+                    G->distance[from][i] = G->distance[from][v] + G->distance[v][i];
+                    pre[i][flag[i]] = v;
+                    flag[i] = 0;
+                    while(pre[i][++flag[i]] != -1){pre[i][++flag[i]] = -1;}
+                    flag[i] = 0;
+                }
+                //相同长度的路径，记录前一个顶点到另一个维度
+                else if(G->distance[from][i] == G->distance[from][v] + G->distance[v][i] && v!=from && v!=i){
+                    pre[i][++flag[i]] = v;
+                    printf("pre\n");
+                    Print(pre,Vertex,6);
+                }
+            }
+        }
+        
+        // for(i=0;i<5;i++)
+            // printf("%-5d",complete[i]);
+    }
+}

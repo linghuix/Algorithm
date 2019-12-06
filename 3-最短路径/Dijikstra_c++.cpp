@@ -4,7 +4,7 @@
 * Blog:     www.WuTianQi.com
 ***************************************/
 
-#include<iostream>
+#include <iostream>
 using namespace std;
 
 const int maxnum = 100;
