@@ -254,7 +254,7 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup = ('lin',0)):
 
 # k 越小，支持向量个数越大，训练集误差越小，训练时间越长
 # k 越大，支持向量个数越小，训练集误差越大，训练时间短
-def testRbf(k1 = 100):
+def testRbf(k1 = 2):
     """
     测试函数
     Parameters:
@@ -285,6 +285,7 @@ def testRbf(k1 = 100):
         predict=kernelEval.T * np.multiply(labelSV,alphas[svInd]) + b         #根据支持向量的点，计算超平面，返回预测结果
         if np.sign(predict) != np.sign(labelArr[i]): errorCount += 1        #返回数组中各元素的正负符号，用1和-1表示，并统计错误个数
     print("测试集错误率: %.2f%%" % ((float(errorCount)/m)*100))             #打印错误率
+    showDataSet(datMat, labelMat)
 
 def showDataSet(dataMat, labelMat):
     """
@@ -309,4 +310,4 @@ def showDataSet(dataMat, labelMat):
     plt.show()
 
 if __name__ == '__main__':
-    testRbf()
+    testRbf(1)

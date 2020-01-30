@@ -191,6 +191,8 @@ def innerL(i, oS):
     else:
         return 0
 
+
+
 def smoP(dataMatIn, classLabels, C, toler, maxIter):
     """
     完整的线性SMO算法
@@ -250,6 +252,7 @@ def showClassifer(dataMat, classLabels, w, b):
     data_minus_np = np.array(data_minus)            #转换为numpy矩阵
     plt.scatter(np.transpose(data_plus_np)[0], np.transpose(data_plus_np)[1], s=30, alpha=0.7)   #正样本散点图
     plt.scatter(np.transpose(data_minus_np)[0], np.transpose(data_minus_np)[1], s=30, alpha=0.7) #负样本散点图
+    
     #绘制直线
     x1 = max(dataMat)[0]
     x2 = min(dataMat)[0]
@@ -259,6 +262,11 @@ def showClassifer(dataMat, classLabels, w, b):
     a2 = float(a2[0])
     y1, y2 = (-b- a1*x1)/a2, (-b - a1*x2)/a2
     plt.plot([x1, x2], [y1, y2])
+    y1, y2 = (-b+1- a1*x1)/a2, (-b+1 - a1*x2)/a2
+    plt.plot([x1, x2], [y1, y2])
+    y1, y2 = (-b-1- a1*x1)/a2, (-b-1 - a1*x2)/a2
+    plt.plot([x1, x2], [y1, y2])
+    
     #找出支持向量点
     for i, alpha in enumerate(alphas):
         if abs(alpha) > 0:
@@ -286,6 +294,9 @@ def calcWs(alphas,dataArr,classLabels):
 
 if __name__ == '__main__':
     dataArr, classLabels = loadDataSet('testSet.txt')
-    b, alphas = smoP(dataArr, classLabels, 0.6, 0.001, 40)
+    b, alphas = smoP(dataArr, classLabels, 0.6, 0.001, 80)
     w = calcWs(alphas,dataArr, classLabels)
     showClassifer(dataArr, classLabels, w, b)
+    print(alphas)
+    
+    
