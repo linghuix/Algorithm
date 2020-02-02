@@ -16,9 +16,9 @@ def loadDataSet(fileName):
     return samples2D,labels
 
 
-class SMOSolver(object):
+class simpleSMOSolver(object):
     
-    def __init__(self, samples2D, labels):
+    def __init__(self, samples2D=[], labels=[]):
         self.samplesMat = np.mat(samples2D)
         self.labelsColumn = np.mat(labels).transpose()
         self.sampleNum, self.sampleDimension = np.shape(self.samplesMat)
@@ -35,10 +35,12 @@ class SMOSolver(object):
     
     针对不符合KKT条件(设定一定的容错率)的alpha的优化
     在设定的迭代最大周期中保持alpha变量不变,才能退出循环
+
+    劣势:迭代速度慢, 且因为是随机选择alpha, 最后迭代结果有些alpha可能还是不满足KKT条件
     """
     def smoSimple(self, C, toler = 0.001, maxIter = 50):
         iterNum = 0
-        self.C = C
+        self.C = C; self.toler = toler
         while (iterNum < maxIter):
             self.alphaPairChangedNum = 0
             print("第%d次迭代"  %(iterNum+1))
@@ -56,7 +58,7 @@ class SMOSolver(object):
    
     def predict(self, sampleRow):
 #         y = wx + b
-         fXi = float(self.getW() * sampleRow.T) + self.b
+         fXi = float(self.Kernel(self.getW(), sampleRow)) + self.b
          return fXi
 
     def getW(self):
@@ -96,25 +98,26 @@ class SMOSolver(object):
                 self.updateAlphaI(i, j)
                 self.alphaPairChangedNum += 1
                 self.updateB(i, j)
+                self.prompt(i, j)
             else:
                 print("\tupdateAlphaPairAndB:alpha_j变化太小"); 
     
     def CopyOldAlpha(self, index):
         return self.alphasColumn[index].copy(); 
-   
+        
     """
-    为加速迭代,一些不需要继续计算的场合
+    为加速迭代,一些不需要继续计算的场合：
+        1.KKT条件下的alpha上下界相同
+        2.eta negative 时，导数零点对应的才是最小值
     """
     def IsSkip(self, i, j):
         self.eta = self.CalculateEta(i, j)
-        """
         if self.eta >= 0: 
-            print("\tIsSkip:eta>=0");
+            print("\tIsSkip:eta>=0  (%d %d)"%(i,j));
             return 1
-        """
         self.H, self.L = self.CalculateAlphaJUpandDown(i, j, self.C)
         if self.H == self.L:
-            print("\tIsSkip:L==H");
+            print("\tIsSkip:L==H  (%d %d)"%(i,j));
             return 1
         return 0
 
@@ -123,7 +126,10 @@ class SMOSolver(object):
         return eta
 
     def Cross(self, xRowIndex1, xRowIndex2):
-        return self.samplesMat[xRowIndex1,:] * self.samplesMat[xRowIndex2,:].T
+        return self.Kernel(self.samplesMat[xRowIndex1,:], self.samplesMat[xRowIndex2,:])
+        
+    def Kernel(self, x1, x2):
+            return x1 * x2.T
     
     def CalculateAlphaJUpandDown(self, i, j, C):
         if (self.labelsColumn[i] != self.labelsColumn[j]):
@@ -166,7 +172,17 @@ class SMOSolver(object):
             self.b = b2    
         else: 
             self.b = (b1 + b2)/2.0 
-   
+            
+    def prompt(self, i, j):
+        print("\tprompt:更新样本%d and %d"%(i,j),end=" ")
+        self.printAlphas()
+    
+    def printAlphas(self):
+        for i in range(self.sampleNum):
+            if self.alphasColumn[i]>0:
+                print("{%d-%f}"%(i,self.alphasColumn[i]),end=' ')
+        print()
+    
     """
     在设定的迭代最大周期中保持alpha变量不变,才能退出循环
     """
@@ -216,12 +232,56 @@ class SMOSolver(object):
                 x, y = samples2D[i]
                 plt.scatter([x], [y], s=150, c='none', alpha=0.7, linewidth=1.5, edgecolor='red')
         plt.show()
+        
+    def showResult(self):
+        for i in range(self.sampleNum):
+            pre = self.predict(self.samplesMat[i,:])
+            print("self.samplesMat[i,:]", end="\t")
+            print("label:%d"%self.labelsColumn[i], end="\t")
+            print("predict:%d"%pre, end='\t\t')
+            print((pre>0) == (self.labelsColumn[i]>0))
+            
+    def test_hardSVM(self):
+        samples2D=[[0,0],[4,0],[5,0]]; labels = [-1,1,1]
+        smo = simpleSMOSolver(samples2D, labels)
+        b,alphasColumn = smo.smoSimple(C = 10000, toler = 0.001, maxIter = 40)
+        w = smo.getW()
+        if(b==[[-1]]) and (w[0,0]==0.5) and (w[0,1]==0):
+            print("ture")
+        else:
+            print("false: w=",w,"b=",b)
+        
+        samples2D=[[0,0],[0,4]]; labels = [-1,1]
+        smo = simpleSMOSolver(samples2D, labels)
+        b,alphasColumn = smo.smoSimple(C = 10000, toler = 0.001, maxIter = 40)
+        w = smo.getW()
+        if(b==[[-1]]) and (w[0,0]==0) and (w[0,1]==0.5):
+            print("ture")
+        else:
+            print("false: w=",w,"b=",b)
+    
+    def test_SVMapplicaiton(self):
+        samples2D, labels = loadDataSet('testDataSimple.txt')
+        smo = simpleSMOSolver(samples2D, labels)
+        b,alphasColumn = smo.smoSimple(C = 10000, toler = 0.001, maxIter = 40)
+        w = smo.getW()
+        if(smo.test_EqualWithTolerant(b[0,0],-3.834,10*smo.toler) and \
+            smo.test_EqualWithTolerant(w[0,0],0.814,smo.toler) and \
+            smo.test_EqualWithTolerant(w[0,1],-0.272,smo.toler)) :
+            print("ture")
+        else:
+            print("false: w=",w,"b=",b)
 
+    def test_EqualWithTolerant(self, a, b, tol):
+        if(abs(a-b) < tol):
+            return 1
+        else:
+            return 0
+            
+    def test(self):
+        simpleSMOSolver().test_hardSVM()
+        simpleSMOSolver().test_SVMapplicaiton()
+        
 if __name__ == '__main__':
-    samples2D, labels = loadDataSet('testDataSimple.txt')
-    smo = SMOSolver(samples2D, labels)
-    b,alphasColumn = smo.smoSimple(C = 0.6, toler = 0.001, maxIter = 10)
-    print(alphasColumn)
-    smo.showClassifer(samples2D)
-    print("w=",smo.getW(),"b=",b)
-
+    simpleSMOSolver().test()
+    
