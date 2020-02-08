@@ -1,0 +1,7 @@
+
+1. SMO算法的收敛理论证明
+
+2. 按照责任单一原则进行重构
+    SMOSlover 划分为alphaJGenerator、SMOProcessor、fastSMO.
+
+3. 添加softSVM的单元测试用例. 手算验证
